@@ -23,9 +23,16 @@
 using namespace std;
 using namespace cv;
 
-static Ptr<aruco::DetectorParameters> detectorParams;
-static Ptr<cv::aruco::Dictionary> dictionary;
+// static Ptr<aruco::DetectorParameters> detectorParams;
+static cv::aruco::DetectorParameters parameters; 
+// static Ptr<cv::aruco::Dictionary> dictionary;
+static cv::aruco::Dictionary dictionary; 
 static raspicam::RaspiCam_Cv Camera;
+
+
+
+
+
 
 ServiceRoverMarkerDetect::ServiceRoverMarkerDetect() {
   AFB_NOTICE("[ServiceRoverMarkerDetect] Constructor ");
@@ -34,8 +41,9 @@ ServiceRoverMarkerDetect::ServiceRoverMarkerDetect() {
 int ServiceRoverMarkerDetect::init() {
   AFB_NOTICE("[ServiceRoverMarkerDetect] Init ");
 
-  detectorParams = aruco::DetectorParameters::create();
-  dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+//   detectorParams = aruco::DetectorParameters::create();
+//   dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+  dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250); 
 
   Camera.set( CV_CAP_PROP_FORMAT, CV_8UC1 );
   if (!Camera.open()) {
@@ -51,17 +59,25 @@ int ServiceRoverMarkerDetect::detect_marker(int &out_marker_id) {
   AFB_NOTICE("[ServiceRoverMarkerDetect] Detect_marker");
   Mat inputImage;
   vector<int> markerIds;
-  vector<vector<Point2f>> markerCorners;
+//   vector<vector<Point2f>> markerCorners;
+  vector< vector<Point2f> > markerCorners, rejectedCandidates; 
 
   Camera.grab();
   Camera.retrieve(inputImage);
 
-  aruco::detectMarkers(inputImage,
-                         dictionary,
-                         markerCorners,
-                         markerIds,
-                         detectorParams);
+  cv::aruco::detectMarkers(inputImage, 
+                        dictionary, 
+                        markerCorners, 
+                        markerIds, 
+                        parameters, 
+                        rejectedCandidates);
 
+//   aruco::detectMarkers(inputImage,
+//                          dictionary,
+//                          markerCorners,
+//                          markerIds,
+//                          detectorParams);
+// 
   if (markerIds.size() >= 1) {
     out_marker_id = markerIds[0];
   } else {
